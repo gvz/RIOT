@@ -25,7 +25,9 @@
 extern "C" {
 #endif
 
+#ifndef UART_STDIO_BAUDRATE
 #define UART_STDIO_BAUDRATE               (19200)
+#endif
 
 /**
  * Context swap defines
