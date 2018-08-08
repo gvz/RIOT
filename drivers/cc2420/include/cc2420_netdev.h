@@ -33,6 +33,7 @@ extern "C" {
  */
 extern const netdev_driver_t cc2420_driver;
 
+extern bool cc2420_integrity_check ;
 #ifdef __cplusplus
 }
 #endif

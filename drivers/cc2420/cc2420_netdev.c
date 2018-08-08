@@ -231,6 +231,8 @@ static int _get(netdev_t *netdev, netopt_t opt, void *val, size_t max_len)
         case NETOPT_TX_END_IRQ:
             return opt_state(val, (dev->options & CC2420_OPT_TELL_RX_END));
 
+        case NETOPT_INTEGRITY_CHECK:
+	        return cc2420_integrity_check;
         default:
             return -ENOTSUP;
     }
@@ -298,6 +300,10 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t val_len)
 
         case NETOPT_TX_END_IRQ:
             return cc2420_set_option(dev, CC2420_OPT_TELL_TX_END, to_bool(val));
+
+        case NETOPT_INTEGRITY_CHECK:
+	        cc2420_integrity_check = to_bool(val);
+	        return 0;
 
         default:
             return ext;

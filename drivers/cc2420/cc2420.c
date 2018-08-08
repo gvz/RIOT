@@ -32,6 +32,7 @@
 #define ENABLE_DEBUG (0)
 #include "debug.h"
 
+bool cc2420_integrity_check = true;
 
 void cc2420_setup(cc2420_t * dev, const cc2420_params_t *params)
 {
@@ -205,10 +206,12 @@ int cc2420_rx(cc2420_t *dev, uint8_t *buf, size_t max_len, void *info)
 
         /* fetch and check if CRC_OK bit (MSB) is set */
         cc2420_fifo_read(dev, &crc_corr, 1);
-        if (!(crc_corr & 0x80)) {
-            DEBUG("cc2420: recv: CRC_OK bit not set, dropping packet\n");
-            /* drop the corrupted frame from the RXFIFO */
-            len = 0;
+        if(cc2420_integrity_check){
+            if (!(crc_corr & 0x80)) {
+                DEBUG("cc2420: recv: CRC_OK bit not set, dropping packet\n");
+                /* drop the corrupted frame from the RXFIFO */
+                len = 0;
+            }
         }
         if (info != NULL) {
             netdev_ieee802154_rx_info_t *radio_info = info;
