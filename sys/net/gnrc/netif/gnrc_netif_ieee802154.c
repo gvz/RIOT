@@ -24,6 +24,10 @@
 #define ENABLE_DEBUG (0)
 #include "debug.h"
 
+#if defined(MODULE_OD) && ENABLE_DEBUG
+#include "od.h"
+#endif
+
 #ifdef MODULE_NETDEV_IEEE802154
 static int _send(gnrc_netif_t *netif, gnrc_pktsnip_t *pkt);
 static gnrc_pktsnip_t *_recv(gnrc_netif_t *netif);
@@ -133,13 +137,14 @@ static gnrc_pktsnip_t *_recv(gnrc_netif_t *netif)
 
             hdr->lqi = rx_info.lqi;
             hdr->rssi = rx_info.rssi;
+            hdr->crc = rx_info.crc;
             hdr->if_pid = thread_getpid();
             pkt->type = state->proto;
 #if ENABLE_DEBUG
             DEBUG("_recv_ieee802154: received packet from %s of length %u\n",
-                  gnrc_netif_addr_to_str(src_str, sizeof(src_str),
-                                         gnrc_netif_hdr_get_src_addr(hdr),
-                                         hdr->src_l2addr_len),
+                  gnrc_netif_addr_to_str(gnrc_netif_hdr_get_src_addr(hdr),
+                                         hdr->src_l2addr_len,
+                                         src_str),
                   nread);
 #if defined(MODULE_OD)
             od_hex_dump(pkt->data, nread, OD_WIDTH_DEFAULT);
