@@ -40,6 +40,8 @@
 
 #define _MAX_MHR_OVERHEAD   (25)
 
+static bool at86rf2xx_integrity_check = true;
+
 static int _send(netdev_t *netdev, const struct iovec *vector, unsigned count);
 static int _recv(netdev_t *netdev, void *buf, size_t len, void *info);
 static int _init(netdev_t *netdev);
@@ -193,7 +195,11 @@ static int _set_state(at86rf2xx_t *dev, netopt_state_t state)
             at86rf2xx_set_state(dev, AT86RF2XX_STATE_SLEEP);
             break;
         case NETOPT_STATE_IDLE:
-            at86rf2xx_set_state(dev, AT86RF2XX_STATE_RX_AACK_ON);
+	        if (at86rf2xx_integrity_check){
+                at86rf2xx_set_state(dev, AT86RF2XX_STATE_RX_AACK_ON);
+            }else{
+                at86rf2xx_set_state(dev, AT86RF2XX_STATE_RX_ON);
+            }
             break;
         case NETOPT_STATE_TX:
             if (dev->netdev.flags & AT86RF2XX_OPT_PRELOADING) {
@@ -235,10 +241,13 @@ netopt_state_t _get_state(at86rf2xx_t *dev)
             return NETOPT_STATE_STANDBY;
         case AT86RF2XX_STATE_BUSY_RX_AACK:
             return NETOPT_STATE_RX;
+        case AT86RF2XX_STATE_BUSY_RX:
+            return NETOPT_STATE_RX;
         case AT86RF2XX_STATE_BUSY_TX_ARET:
         case AT86RF2XX_STATE_TX_ARET_ON:
             return NETOPT_STATE_TX;
         case AT86RF2XX_STATE_RX_AACK_ON:
+        case AT86RF2XX_STATE_RX_ON:
         default:
             return NETOPT_STATE_IDLE;
     }
@@ -377,6 +386,16 @@ static int _get(netdev_t *netdev, netopt_t opt, void *val, size_t max_len)
             *((int8_t *)val) = at86rf2xx_get_ed_level(dev);
             res = sizeof(int8_t);
             break;
+
+        case NETOPT_AUTOACK :
+            assert(max_len >= sizeof(netopt_enable_t));
+            uint8_t tmp = at86rf2xx_reg_read(dev, AT86RF2XX_REG__CSMA_SEED_1);
+            *((netopt_enable_t *)val) = (tmp & AT86RF2XX_CSMA_SEED_1__AACK_DIS_ACK) ? false : true;
+            res = sizeof(netopt_enable_t);
+            break;
+        
+        case NETOPT_INTEGRITY_CHECK:
+	    return at86rf2xx_integrity_check;
 
         default:
             res = -ENOTSUP;
@@ -546,6 +565,16 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             res = sizeof(int8_t);
             break;
 
+        case NETOPT_INTEGRITY_CHECK:
+	        at86rf2xx_integrity_check = (bool)val;
+	        /* at86rf2xx needs to be in RX_ON state to not drop packets with wrong crc */ 
+	        if (at86rf2xx_integrity_check){
+                at86rf2xx_set_state(dev, AT86RF2XX_STATE_RX_AACK_ON);
+            }else{
+                at86rf2xx_set_state(dev, AT86RF2XX_STATE_RX_ON);
+            }
+	        return 0;
+
         default:
             break;
     }
@@ -591,6 +620,8 @@ static void _isr(netdev_t *netdev)
 
     if (irq_mask & AT86RF2XX_IRQ_STATUS_MASK__TRX_END) {
         if ((state == AT86RF2XX_STATE_RX_AACK_ON)
+            || (state == AT86RF2XX_STATE_RX_ON)
+            || (state == AT86RF2XX_STATE_BUSY_RX)
             || (state == AT86RF2XX_STATE_BUSY_RX_AACK)) {
             DEBUG("[at86rf2xx] EVT - RX_END\n");
             if (!(dev->netdev.flags & AT86RF2XX_OPT_TELL_RX_END)) {
