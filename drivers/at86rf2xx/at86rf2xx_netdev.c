@@ -185,7 +185,7 @@ static int _recv(netdev_t *netdev, void *buf, size_t len, void *info)
         rssi &= AT86RF2XX_PHY_RSSI_MASK__RSSI;
 #endif
         radio_info->rssi = RSSI_BASE_VAL + rssi;
-        radio_info->crc = crc_ok;
+        radio_info->crc_ok = crc_ok;
         (void)crc_ok;
     }
     else {
