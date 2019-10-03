@@ -245,6 +245,7 @@ static void _set_usage(char *cmd_name)
          "       * \"modulation_order\" - FSK modulation order\n"
          "       * \"symbol_rate\" - FSK symbol rate\n"
          "       * \"fec\" - FSK forward error correction\n"
+         "       * \"channel_spacing\" - channel spacing\n"
 #endif
          "       * \"power\" - TX power in dBm\n"
          "       * \"retrans\" - max. number of retransmissions\n"
@@ -419,6 +420,10 @@ static void _print_netopt(netopt_t opt)
 
         case NETOPT_FSK_FEC:
             printf("FSK Forward Error Correction");
+            break;
+
+        case NETOPT_CHANNEL_SPACING:
+            printf("Channel Spacing");
             break;
 
 #endif /* MODULE_GNRC_NETIF_CMD_FSK */
@@ -700,6 +705,10 @@ static void _netif_list(netif_t *iface)
             res = gnrc_netapi_get(iface, NETOPT_FSK_FEC, 0, &u8, sizeof(u8));
             if (res >= 0) {
                 printf(" FEC: %s ", _netopt_fec_str[u8]);
+            }
+            res = gnrc_netapi_get(iface, NETOPT_CHANNEL_SPACING, 0, &u16, sizeof(u16));
+            if (res >= 0) {
+                printf(" BW: %ukHz ", u16);
             }
 
             break;
@@ -1517,6 +1526,9 @@ static int _netif_set(char *cmd_name, netif_t *iface, char *key, char *value)
     }
     else if ((strcmp("forward_error_correction", key) == 0) || (strcmp("fec", key) == 0)) {
         return _netif_set_fsk_fec(iface, value);
+    }
+    else if ((strcmp("channel_spacing", key) == 0) || (strcmp("bw", key) == 0)) {
+        return _netif_set_u16(iface, NETOPT_CHANNEL_SPACING, 0, value);
     }
 #endif /* MODULE_GNRC_NETIF_CMD_FSK */
     else if ((strcmp("channel", key) == 0) || (strcmp("chan", key) == 0)) {
