@@ -33,6 +33,13 @@ uint16_t at86rf215_get_addr_short(const at86rf215_t *dev)
 {
     return at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0);
 }
+uint16_t at86rf215_get_addr_short_multi(const at86rf215_t *dev, uint8_t filter)
+{
+    if (filter > 3){
+        return 0; 
+    }
+    return at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter));
+}
 
 void at86rf215_set_addr_short(at86rf215_t *dev, uint16_t addr)
 {
@@ -41,6 +48,15 @@ void at86rf215_set_addr_short(at86rf215_t *dev, uint16_t addr)
 
     at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0, addr);
 }
+
+void at86rf215_set_addr_short_multi(at86rf215_t *dev, uint8_t filter, uint16_t addr)
+{
+    if (filter > 3){
+	return; 
+    }
+    at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter), addr);
+}
+
 
 uint64_t at86rf215_get_addr_long(const at86rf215_t *dev)
 {
@@ -102,10 +118,26 @@ uint16_t at86rf215_get_pan(const at86rf215_t *dev)
     return at86rf215_reg_read16(dev, dev->BBC->RG_MACPID0F0);
 }
 
+uint16_t at86rf215_get_pan_multi(const at86rf215_t *dev, uint8_t filter)
+{
+	if (filter > 3){
+		return 0;
+	}
+	return at86rf215_reg_read16(dev, dev->BBC->RG_MACPID0F0 + (4 * filter));
+}
+
 void at86rf215_set_pan(at86rf215_t *dev, uint16_t pan)
 {
     dev->netdev.pan = pan;
     at86rf215_reg_write16(dev, dev->BBC->RG_MACPID0F0, pan);
+}
+
+void at86rf215_set_pan_multi(at86rf215_t *dev, uint8_t filter, uint16_t pan)
+{
+	if (filter > 3){
+		return;
+	}
+	at86rf215_reg_write16(dev, dev->BBC->RG_MACPID0F0 + (4*filter), pan);
 }
 
 // TODO: take modulation into account
