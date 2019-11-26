@@ -214,10 +214,32 @@ void at86rf215_set_addr_short(at86rf215_t *dev, uint16_t addr);
  * @brief   Set the short address of the given device to multi address filter
  *
  * @param[in,out] dev       device to write to
- * @param[in] addr          (1-byte) address filter to set
+ * @param[in] filter          (1-byte) address filter to set
  * @param[in] addr          (2-byte) short address to set
  */
  void at86rf215_set_addr_short_multi(at86rf215_t *dev, uint8_t filter, uint16_t addr);
+
+
+
+/**
+ * @brief   Get whether frame filter is enabled or not
+ *
+ * @param[in] dev           device to read from
+ * @param[in] filter        (1-byte) filter to get
+ *
+ * @return                  the current state of the filter
+ */
+uint8_t at86rf215_get_framefilter_enabled(at86rf215_t *dev, uint8_t filter);
+
+/**
+ * @brief   Get whether frame filter is enabled or not
+ *
+ * @param[in] dev           device to read from
+ * @param[in] filter        (1-byte) filter to get
+ * @param[in] state         (1-byte) state of filter
+ *
+ */
+void at86rf215_set_framefilter_enabled(at86rf215_t *dev, uint8_t filter, uint8_t state);
 
 /**
  * @brief   Get the configured long address of the given device

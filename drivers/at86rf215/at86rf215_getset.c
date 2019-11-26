@@ -57,6 +57,22 @@ void at86rf215_set_addr_short_multi(at86rf215_t *dev, uint8_t filter, uint16_t a
     at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter), addr);
 }
 
+uint8_t at86rf215_get_framefilter_enabled(at86rf215_t *dev, uint8_t filter)
+{
+	return (at86rf215_reg_read(dev, dev->BBC->RG_AFC0) >> (AFC0_AFEN0_SHIFT + filter)) & 1;
+}
+
+void at86rf215_set_framefilter_enabled(at86rf215_t *dev, uint8_t filter, uint8_t state)
+{
+	uint8_t val = at86rf215_reg_read(dev, dev->BBC->RG_AFC0);
+	if (state == 1){
+		val |= 1 << (AFC0_AFEN0_SHIFT + filter);
+	}else if (state == 0){
+		val &= ~(1 << (AFC0_AFEN0_SHIFT + filter));
+	}
+
+	return at86rf215_reg_write(dev, dev->BBC->RG_AFC0, val);
+}
 
 uint64_t at86rf215_get_addr_long(const at86rf215_t *dev)
 {
