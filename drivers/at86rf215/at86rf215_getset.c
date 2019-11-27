@@ -39,7 +39,7 @@ uint16_t at86rf215_get_addr_short_multi(const at86rf215_t *dev, uint8_t filter)
     if (filter > 3){
         return 0; 
     }
-    return at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter));
+    return byteorder_ntohs((network_uint16_t)at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter)));
 }
 
 void at86rf215_set_addr_short(at86rf215_t *dev, uint16_t addr)
@@ -55,7 +55,7 @@ void at86rf215_set_addr_short_multi(at86rf215_t *dev, uint8_t filter, uint16_t a
     if (filter > 3){
 	return; 
     }
-    at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter), addr);
+    at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter), byteorder_htons(addr).u16);
 }
 
 uint8_t at86rf215_get_framefilter_enabled(at86rf215_t *dev, uint8_t filter)
