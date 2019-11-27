@@ -31,7 +31,8 @@
 
 uint16_t at86rf215_get_addr_short(const at86rf215_t *dev)
 {
-    return at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0);
+	return (uint16_t)byteorder_ntohs((network_uint16_t)at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0));
+
 }
 uint16_t at86rf215_get_addr_short_multi(const at86rf215_t *dev, uint8_t filter)
 {
@@ -45,8 +46,8 @@ void at86rf215_set_addr_short(at86rf215_t *dev, uint16_t addr)
 {
     dev->netdev.short_addr[0] = (uint8_t)(addr);
     dev->netdev.short_addr[1] = (uint8_t)(addr >> 8);
-
-    at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0, addr);
+    
+    at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0, byteorder_htons(addr).u16);
 }
 
 void at86rf215_set_addr_short_multi(at86rf215_t *dev, uint8_t filter, uint16_t addr)
