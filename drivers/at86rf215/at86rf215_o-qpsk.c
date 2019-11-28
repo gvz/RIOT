@@ -214,7 +214,7 @@ static uint8_t _set_mode(at86rf215_t *dev, uint8_t mode, bool legacy, uint8_t *c
     at86rf215_reg_write(dev, dev->BBC->RG_OQPSKC2,
                          rxm                    /* receive mode, legacy or MR-O-QPSK */
                        | OQPSKC2_FCSTLEG_MASK   /* 16 bit frame checksum */
-                       | OQPSKC2_ENPROP_MASK);  /* enable Reduce Power Consumption */
+                       | OQPSKC2_ENPROP_MASK);  /* enable RX of proprietary modes */
 
     at86rf215_switch_mode(dev, legacy ? AT86RF215_MODE_LEGACY_OQPSK : AT86RF215_MODE_MR_OQPSK);
     return mode;
