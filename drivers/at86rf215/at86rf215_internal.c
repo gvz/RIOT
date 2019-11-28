@@ -171,16 +171,16 @@ bool at86rf215_switch_mode(at86rf215_t *dev, uint8_t new_mode)
         return false;
     }
 
+    netdev_t *netdev = (netdev_t *)dev;
     bool pdu_changed = (new_mode == AT86RF215_MODE_LEGACY_OQPSK ||
                         dev->mode == AT86RF215_MODE_LEGACY_OQPSK);
 
     dev->mode = new_mode;
 
-#ifdef MODULE_GNRC_IPV6 /* XXX move this out of the driver */
     if (pdu_changed) {
-        gnrc_netif_ipv6_init_mtu(gnrc_netif_get_by_pid(thread_getpid()));
+        netdev->event_callback(netdev, NETDEV_EVENT_PDU_CHANGED);
     }
-#endif
+
     return pdu_changed;
 }
 
