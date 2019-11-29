@@ -423,16 +423,6 @@ int at86rf215_configure_FSK(at86rf215_t *dev, uint8_t srate, uint8_t mod_idx, ui
     /* enable automatic receiver gain */
     at86rf215_reg_write(dev, dev->RF->RG_AGCC, AGCC_EN_MASK);
 
-    /* set channel spacing, same for both sub-GHz & 2.4 GHz */
-    at86rf215_reg_write(dev, dev->RF->RG_CS, at86rf215_fsk_channel_spacing_25kHz[FSK_CHANNEL_SPACING_200K]);
-
-    /* set center frequency */
-    if (is_subGHz(dev)) {
-        at86rf215_reg_write16(dev, dev->RF->RG_CCF0L, chan_center_freq0_subghz_25khz[FSK_CHANNEL_SPACING_200K]);
-    } else {
-        at86rf215_reg_write16(dev, dev->RF->RG_CCF0L, chan_center_freq0_24ghz_25khz[FSK_CHANNEL_SPACING_200K]);
-    }
-
     /* set Bandwidth Time Product, Modulation Index & Modulation Order */
     /* effective modulation index = MIDXS * MIDX */
     at86rf215_reg_write(dev, dev->BBC->RG_FSKC0, FSK_BT_20
@@ -455,14 +445,11 @@ int at86rf215_configure_FSK(at86rf215_t *dev, uint8_t srate, uint8_t mod_idx, ui
     /* set forward error correction */
     at86rf215_FSK_set_fec(dev, fec);
 
-    at86rf215_enable_radio(dev, BB_MRFSK);
-
-    /* assume channel spacing for mode #1 */
-    dev->num_chans = is_subGHz(dev) ? 34 : 416;
-    dev->netdev.chan = at86rf215_chan_valid(dev, dev->netdev.chan);
-    at86rf215_reg_write16(dev, dev->RF->RG_CNL, dev->netdev.chan);
+    at86rf215_FSK_set_channel_spacing(dev, FSK_CHANNEL_SPACING_400K);
 
     _set_ack_timeout(dev, srate, mod_order, fec);
+
+    at86rf215_enable_radio(dev, BB_MRFSK);
 
     at86rf215_switch_mode(dev, AT86RF215_MODE_MR_FSK);
 
