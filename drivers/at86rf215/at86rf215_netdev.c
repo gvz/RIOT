@@ -1007,15 +1007,17 @@ static void _isr(netdev_t *netdev)
 
         bb_irq_mask &= ~BB_IRQ_RXFE;
 
+        if (dev->flags & AT86RF215_OPT_TELL_RX_END) {
+            /* will be executed in the same thread */
+            DEBUG("RX_COMPLETE CALLBACK\n");
+            netdev->event_callback(netdev, NETDEV_EVENT_RX_COMPLETE);
+        }
+
         if (rx_ack_req) {
             dev->state = AT86RF215_STATE_RX_SEND_ACK;
             break;
         }
 
-        if (dev->flags & AT86RF215_OPT_TELL_RX_END) {
-            /* will be executed in the same thread */
-            netdev->event_callback(netdev, NETDEV_EVENT_RX_COMPLETE);
-        }
 
         _set_idle(dev);
         break;
@@ -1027,11 +1029,6 @@ static void _isr(netdev_t *netdev)
         }
 
         bb_irq_mask &= ~BB_IRQ_TXFE;
-
-        if (dev->flags & AT86RF215_OPT_TELL_RX_END) {
-            /* will be executed in the same thread */
-            netdev->event_callback(netdev, NETDEV_EVENT_RX_COMPLETE);
-        }
 
         _set_idle(dev);
         break;
