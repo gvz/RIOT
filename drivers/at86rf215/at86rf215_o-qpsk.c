@@ -250,7 +250,7 @@ static void _set_legacy(at86rf215_t *dev, bool high_rate)
 
 static void _set_ack_timeout(at86rf215_t *dev, uint8_t chips, uint8_t mode)
 {
-    dev->ack_timeout_usec = 10 * AT86RF215_ACK_PERIOD_IN_BITS * 1000000UL / _get_bitrate(chips, mode);
+    dev->ack_timeout_usec = AT86RF215_ACK_PERIOD_IN_BITS * 1000000UL / _get_bitrate(chips, mode);
     DEBUG("[%s] ACK timeout: %"PRIu32" µs\n", "O-QPSK", dev->ack_timeout_usec);
 }
 
