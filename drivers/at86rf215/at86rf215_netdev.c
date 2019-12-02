@@ -316,6 +316,11 @@ static int _get(netdev_t *netdev, netopt_t opt, void *val, size_t max_len)
             }
             return sizeof(uint16_t);
 
+        case NETOPT_AUTOCCA:
+            *((netopt_enable_t *)val) =
+                !!(dev->flags & AT86RF215_OPT_CCATX);
+            return sizeof(netopt_enable_t);
+
         default:
             /* Can still be handled in second switch */
             break;
@@ -497,6 +502,12 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
 
         case NETOPT_AUTOACK:
             at86rf215_set_option(dev, AT86RF215_OPT_AUTOACK,
+                                 ((const bool *)val)[0]);
+            res = sizeof(netopt_enable_t);
+            break;
+
+        case NETOPT_AUTOCCA:
+            at86rf215_set_option(dev, AT86RF215_OPT_CCATX,
                                  ((const bool *)val)[0]);
             res = sizeof(netopt_enable_t);
             break;

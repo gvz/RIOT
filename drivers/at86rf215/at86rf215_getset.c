@@ -277,6 +277,14 @@ void at86rf215_set_option(at86rf215_t *dev, uint16_t option, bool state)
             }
 
             break;
+        case AT86RF215_OPT_CCATX:
+            if (state){
+                at86rf215_reg_or(dev, dev->BBC->RG_AMCS, AMCS_CCATX_MASK);
+            } else {
+                at86rf215_reg_and(dev, dev->BBC->RG_AMCS, ~AMCS_CCATX_MASK);
+            }
+
+            break;
         case AT86RF215_OPT_RPC:
             if (state) {
                 at86rf215_enable_rpc(dev);

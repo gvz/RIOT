@@ -118,6 +118,7 @@ enum {
 #define AT86RF215_OPT_TX_PENDING     (0x0400)       /**< Frame is loaded into TX buffer */
 #define AT86RF215_OPT_CCA_PENDING    (0x0800)       /**< CCA needs to be done for the current frame */
 #define AT86RF215_OPT_RPC            (0x1000)       /**< Enable Reduced Power Consumption */
+#define AT86RF215_OPT_CCATX          (0x2000)       /**< TX after CCA performd automatically */
 /** @} */
 
 /**

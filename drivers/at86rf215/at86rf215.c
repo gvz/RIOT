@@ -275,7 +275,9 @@ int at86rf215_tx_exec(at86rf215_t *dev)
 
     dev->flags |= AT86RF215_OPT_TX_PENDING;
     if (dev->flags & AT86RF215_OPT_CSMA) {
-        dev->flags |= AT86RF215_OPT_CCA_PENDING;
+	 if (!(dev->flags & AT86RF215_OPT_CCATX)) {
+            dev->flags |= AT86RF215_OPT_CCA_PENDING;
+         }
     }
 
     if (dev->state == AT86RF215_STATE_IDLE) {
