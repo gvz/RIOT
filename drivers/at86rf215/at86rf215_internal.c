@@ -131,6 +131,7 @@ void at86rf215_filter_ack(at86rf215_t *dev, bool on)
 
 void at86rf215_get_random(at86rf215_t *dev, uint8_t *data, size_t len)
 {
+    uint8_t state = at86rf215_reg_read(dev, dev->BBC->RG_PC);
     at86rf215_disable_baseband(dev);
 
     uint8_t rxbwc = at86rf215_reg_read(dev, dev->RF->RG_RXBWC);
@@ -144,7 +145,9 @@ void at86rf215_get_random(at86rf215_t *dev, uint8_t *data, size_t len)
     }
 
     at86rf215_reg_write(dev, dev->RF->RG_RXBWC, rxbwc);
-    at86rf215_enable_baseband(dev);
+    /* set baseband in prior state */
+    at86rf215_reg_write(dev, dev->BBC->RG_PC, state);
+
 }
 
 uint16_t at86rf215_chan_valid(at86rf215_t *dev, uint16_t chan)
