@@ -159,6 +159,12 @@ typedef struct at86rf215 {
     uint8_t csma_retries;                   /**< CSMA retries left */
     uint8_t fsk_pl_rx;                      /**< FSK Preamble Length for RX */
     uint8_t fsk_pl_tx;                      /**< FSK Preamble Length for TX */
+    uint32_t csma_backoff_period;           /**< CSMA Backoff period */
+    uint32_t csma_backoff_usec;             /**< active CSMA Backoff */
+    xtimer_t backoff_timer;                 /**< timer for csma backoff  */
+    uint8_t backoff_timeout;                    /**< 1 if ack timeout was reached, 0 otherwise */
+    uint8_t csma_minbe;                     /**< CSMA mininum backoff exponent */
+    uint8_t csma_maxbe;                     /**< CSMA maximum backoff exponent */
 } at86rf215_t;
 
 /**

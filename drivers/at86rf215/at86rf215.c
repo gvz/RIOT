@@ -89,6 +89,8 @@ void at86rf215_reset_cfg(at86rf215_t *dev)
     /* set default options */
     dev->retries_max = 3;
     dev->csma_retries_max = 4;
+    dev->csma_maxbe = 5;
+    dev->csma_minbe = 3;
 
     dev->flags |= AT86RF215_OPT_AUTOACK
                |  AT86RF215_OPT_CSMA;

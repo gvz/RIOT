@@ -39,11 +39,19 @@ extern "C" {
 #define AT86RF215_RESET_DELAY           (16U)
 
 /**
+ * This is used to calculate the csma backoff based on the bitrate.
+*/
+/** 20 symbols is the std period length */
+#define AT86RF215_BACKOFF_PERIOD_IN_SYMBOLS (20U)
+/** in 802.15.4 oqpsk each symble is 4 bits, not about the others */
+#define AT86RF215_BACKOFF_PERIOD_IN_BITS    (AT86RF215_BACKOFF_PERIOD_IN_SYMBOLS * 4)
+
+/**
  * This is used to calculate the ACK timeout based on the bitrate.
  * AT86RF233 uses an ACK timeout of 54 symbol periods, or 864 µs @ 250 kbit/s
  * -> 864µs * 250kbit/s = 216 bit */
 #define AT86RF215_ACK_PERIOD_IN_SYMBOLS (54U)
-/** I'm not sure why according to the calculation, each symbol has 4 bits */
+/** in 802.15.4 oqpsk each symble is 4 bits, not about the others */
 #define AT86RF215_ACK_PERIOD_IN_BITS    (AT86RF215_ACK_PERIOD_IN_SYMBOLS * 4)
 
 #define AT86RF215_OQPSK_MODE_LEGACY           (0x1)                             /**< legacy mode, 250 kbit/s */

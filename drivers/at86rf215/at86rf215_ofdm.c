@@ -218,6 +218,12 @@ static void _set_ack_timeout(at86rf215_t *dev, uint8_t option, uint8_t scheme)
     DEBUG("[%s] ACK timeout: %"PRIu32" µs\n", "OFDM", dev->ack_timeout_usec);
 }
 
+static void _set_csma_backoff_period(at86rf215_t *dev, uint8_t option, uint8_t scheme)
+{
+    dev->csma_backoff_period =  AT86RF215_BACKOFF_PERIOD_IN_BITS * 1000000UL / _get_bitrate(option, scheme);
+    DEBUG("[%s] CSMA BACKOFF: %"PRIu32" µs\n", "OFDM", dev->csma_backoff_period);
+}
+
 static bool _option_mcs_valid(uint8_t option, uint8_t mcs)
 {
     if (option < 1 || option > 4) {
@@ -261,6 +267,7 @@ int at86rf215_configure_OFDM(at86rf215_t *dev, uint8_t option, uint8_t scheme)
     at86rf215_reg_write(dev, dev->BBC->RG_OFDMPHRTX, scheme);
 
     _set_ack_timeout(dev, option, scheme);
+    _set_csma_backoff_period(dev, option, scheme);
 
     at86rf215_enable_radio(dev, BB_MROFDM);
 
@@ -282,6 +289,7 @@ int at86rf215_OFDM_set_scheme(at86rf215_t *dev, uint8_t scheme)
 
     at86rf215_reg_write(dev, dev->BBC->RG_OFDMPHRTX, scheme);
     _set_ack_timeout(dev, at86rf215_OFDM_get_option(dev), scheme);
+    _set_csma_backoff_period(dev, at86rf215_OFDM_get_option(dev), scheme);
 
     return 0;
 }
@@ -304,6 +312,7 @@ int at86rf215_OFDM_set_option(at86rf215_t *dev, uint8_t option)
 
     _set_option(dev, option);
     _set_ack_timeout(dev, option, mcs);
+    _set_csma_backoff_period(dev, option, mcs);
 
     return 0;
 }

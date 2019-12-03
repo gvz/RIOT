@@ -281,6 +281,16 @@ static int _get(netdev_t *netdev, netopt_t opt, void *val, size_t max_len)
             *((uint8_t *)val) = dev->csma_retries_max;
             return sizeof(uint8_t);
 
+        case NETOPT_CSMA_MAXBE:
+            assert(max_len >= sizeof(uint8_t));
+            *((uint8_t *)val) = dev->csma_maxbe;
+            return sizeof(uint8_t);
+
+        case NETOPT_CSMA_MINBE:
+            assert(max_len >= sizeof(uint8_t));
+            *((uint8_t *)val) = dev->csma_minbe;
+            return sizeof(uint8_t);
+
         case NETOPT_RETRANS:
             assert(max_len >= sizeof(uint8_t));
             *((uint8_t *)val) = dev->retries_max;
@@ -566,6 +576,20 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             res = sizeof(uint8_t);
             break;
 
+        case NETOPT_CSMA_MAXBE:
+            assert(len <= sizeof(uint8_t));
+            dev->csma_maxbe = *((const uint8_t *)val);
+            DEBUG("%d csma_maxbe\n", dev->csma_maxbe);
+            res = sizeof(uint8_t);
+            break;
+
+        case NETOPT_CSMA_MINBE:
+            assert(len <= sizeof(uint8_t));
+            dev->csma_minbe = *((const uint8_t *)val);
+            DEBUG("%d csma_minbe\n", dev->csma_minbe);
+            res = sizeof(uint8_t);
+            break;
+
         case NETOPT_CCA_THRESHOLD:
             assert(len <= sizeof(int8_t));
             at86rf215_set_cca_threshold(dev, *((const int8_t *)val));
@@ -793,6 +817,15 @@ static void _ack_timeout_cb(void* arg) {
     msg_send_int(&dev->ack_msg, dev->ack_msg.sender_pid);
 }
 
+static void _backoff_timeout_cb(void* arg) {
+    at86rf215_t *dev = arg;
+    if (!(dev->flags & AT86RF215_OPT_CCATX)) {
+        at86rf215_reg_write(dev, dev->RF->RG_EDC, 1);
+    }else{
+        at86rf215_rf_cmd(dev, CMD_RF_TXPREP);
+    }
+}
+
 static void _set_idle(at86rf215_t *dev)
 {
     dev->state = AT86RF215_STATE_IDLE;
@@ -868,30 +901,23 @@ static void _handle_edc(at86rf215_t *dev, uint8_t amcs)
             return;
         }
     }
+        DEBUG("CSMA busy\n");
+        if (dev->csma_retries) {
+            --dev->csma_retries;
+            _start_backoff_timer(dev);
+        } else {
+            /* channel busy and no retries left */
+            dev->flags &= ~(AT86RF215_OPT_CCA_PENDING | AT86RF215_OPT_TX_PENDING);
+            dev->state = AT86RF215_STATE_IDLE; //in CCATX state is WAIT_ACK
+            at86rf215_enable_baseband(dev);
+            at86rf215_enable_rpc(dev);
+            at86rf215_tx_done(dev);
 
-    DEBUG("CSMA busy\n");
-    if (dev->csma_retries) {
-        --dev->csma_retries;
-        /* re-start energy detection */
-        /* TODO: exponential? backoff */
-            if (!(dev->flags & AT86RF215_OPT_CCATX)) {
-                at86rf215_reg_write(dev, dev->RF->RG_EDC, 1);
-            }else{
-	        at86rf215_rf_cmd(dev, CMD_RF_TXPREP);
-            }
-    } else {
-        /* channel busy and no retries left */
-        dev->flags &= ~(AT86RF215_OPT_CCA_PENDING | AT86RF215_OPT_TX_PENDING);
-	dev->state = AT86RF215_STATE_IDLE; //in CCATX state is WAIT_ACK
-        at86rf215_enable_baseband(dev);
-        at86rf215_enable_rpc(dev);
-        at86rf215_tx_done(dev);
+            netdev->event_callback(netdev, NETDEV_EVENT_TX_MEDIUM_BUSY);
 
-        netdev->event_callback(netdev, NETDEV_EVENT_TX_MEDIUM_BUSY);
-
-        DEBUG("CSMA give up");
-        /* radio is still in RX mode, tx_done sets IDLE state */
-    }
+            DEBUG("CSMA give up");
+            /* radio is still in RX mode, tx_done sets IDLE state */
+        }
 }
 
 /* executed in the radio thread */
