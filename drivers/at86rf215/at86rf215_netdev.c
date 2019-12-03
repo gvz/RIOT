@@ -858,13 +858,15 @@ static void _handle_edc(at86rf215_t *dev, uint8_t amcs)
 {
     netdev_t *netdev = (netdev_t *) dev;
 
-    /* channel clear -> TX */
-    if (!(amcs & AMCS_CCAED_MASK)) {
-        dev->flags &= ~AT86RF215_OPT_CCA_PENDING;
-        at86rf215_enable_baseband(dev);
-        at86rf215_enable_rpc(dev);
-        at86rf215_rf_cmd(dev, CMD_RF_TXPREP);
-        return;
+    if (!(dev->flags & AT86RF215_OPT_CCATX)) { // in CCATX mode this function is only triggered if busy
+        /* channel clear -> TX */
+        if (!(amcs & AMCS_CCAED_MASK) &&
+            (int8_t)at86rf215_reg_read(dev, dev->RF->RG_EDV) <= at86rf215_get_cca_threshold(dev)) {
+            dev->flags &= ~AT86RF215_OPT_CCA_PENDING;
+            at86rf215_enable_baseband(dev);
+            at86rf215_rf_cmd(dev, CMD_RF_TXPREP);
+            return;
+        }
     }
 
     DEBUG("CSMA busy\n");
@@ -872,10 +874,15 @@ static void _handle_edc(at86rf215_t *dev, uint8_t amcs)
         --dev->csma_retries;
         /* re-start energy detection */
         /* TODO: exponential? backoff */
-        at86rf215_reg_write(dev, dev->RF->RG_EDC, 1);
+            if (!(dev->flags & AT86RF215_OPT_CCATX)) {
+                at86rf215_reg_write(dev, dev->RF->RG_EDC, 1);
+            }else{
+	        at86rf215_rf_cmd(dev, CMD_RF_TXPREP);
+            }
     } else {
         /* channel busy and no retries left */
         dev->flags &= ~(AT86RF215_OPT_CCA_PENDING | AT86RF215_OPT_TX_PENDING);
+	dev->state = AT86RF215_STATE_IDLE; //in CCATX state is WAIT_ACK
         at86rf215_enable_baseband(dev);
         at86rf215_enable_rpc(dev);
         at86rf215_tx_done(dev);
@@ -981,6 +988,14 @@ static void _isr(netdev_t *netdev)
                 netdev->event_callback(netdev, NETDEV_EVENT_TX_STARTED);
             }
         }
+    }
+
+    /* CCATX signals medium busy */
+    if ((dev->flags & AT86RF215_OPT_CCATX) && (rf_irq_mask & RF_IRQ_EDC) && (bb_irq_mask & BB_IRQ_TXFE)) {
+        bb_irq_mask &= ~BB_IRQ_TXFE;
+        rf_irq_mask &= ~RF_IRQ_EDC;
+        DEBUG("GOT EDC and TXFE\n");
+        _handle_edc(dev, amcs);
     }
 
     int iter = 0;
