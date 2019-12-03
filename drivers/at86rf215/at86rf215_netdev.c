@@ -851,6 +851,25 @@ static void _start_ack_timer(at86rf215_t *dev)
     xtimer_set(&dev->ack_timer, dev->ack_timeout_usec);
 }
 
+/* wake up the radio thread when after CSMA backoff */
+static void _start_backoff_timer(at86rf215_t *dev)
+{
+    uint32_t base;
+    at86rf215_get_random(dev, (uint8_t *)&base, 4);
+    uint8_t be = ((dev->csma_retries_max - dev->csma_retries) - 1) + dev->csma_minbe ;
+    if (be > dev->csma_maxbe){
+	    be = dev->csma_maxbe;
+    } 
+    dev->csma_backoff_usec = (((uint32_t)1 << be) - 1) * dev->csma_backoff_period;
+    dev->csma_backoff_usec = base % dev->csma_backoff_usec;
+    DEBUG("SET BACKOFF to %lu  be %u min %u max %u\n", dev->csma_backoff_usec, be, dev->csma_minbe, dev->csma_maxbe);
+
+    dev->backoff_timer.arg = dev;
+    dev->backoff_timer.callback = _backoff_timeout_cb;
+
+    xtimer_set(&dev->backoff_timer, dev->csma_backoff_usec);
+}
+
 static inline bool _ack_frame_received(at86rf215_t *dev)
 {
     /* check if the sequence numbers match */
