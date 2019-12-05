@@ -884,7 +884,9 @@ static void _handle_ack_timeout(at86rf215_t *dev)
 
         if (dev->flags & AT86RF215_OPT_CSMA) {
             dev->csma_retries = dev->csma_retries_max;
-            dev->flags |= AT86RF215_OPT_CCA_PENDING;
+            if (!(dev->flags & AT86RF215_OPT_CCATX)){
+                dev->flags |= AT86RF215_OPT_CCA_PENDING;
+            }
         }
 
         dev->flags |= AT86RF215_OPT_TX_PENDING;
@@ -1157,7 +1159,7 @@ timeout:
             DEBUG("Ack timeout postponed\n");
             _start_ack_timer(dev);
         } else {
-            DEBUG("Ack timeout");
+            DEBUG("Ack timeout\n");
             _handle_ack_timeout(dev);
         }
 
