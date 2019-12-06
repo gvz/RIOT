@@ -821,7 +821,7 @@ static void _backoff_timeout_cb(void* arg) {
     at86rf215_t *dev = arg;
     if (!(dev->flags & AT86RF215_OPT_CCATX)) {
         at86rf215_reg_write(dev, dev->RF->RG_EDC, 1);
-    }else{
+    } else {
         at86rf215_rf_cmd(dev, CMD_RF_TXPREP);
     }
 }

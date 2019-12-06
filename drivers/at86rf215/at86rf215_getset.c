@@ -31,7 +31,7 @@
 
 uint16_t at86rf215_get_addr_short(const at86rf215_t *dev)
 {
-	return (uint16_t)byteorder_ntohs((network_uint16_t)at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0));
+    return (uint16_t)byteorder_ntohs((network_uint16_t)at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0));
 
 }
 uint16_t at86rf215_get_addr_short_multi(const at86rf215_t *dev, uint8_t filter)
@@ -53,26 +53,26 @@ void at86rf215_set_addr_short(at86rf215_t *dev, uint16_t addr)
 void at86rf215_set_addr_short_multi(at86rf215_t *dev, uint8_t filter, uint16_t addr)
 {
     if (filter > 3){
-	return; 
+        return; 
     }
     at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter), byteorder_htons(addr).u16);
 }
 
 uint8_t at86rf215_get_framefilter_enabled(at86rf215_t *dev, uint8_t filter)
 {
-	return (at86rf215_reg_read(dev, dev->BBC->RG_AFC0) >> (AFC0_AFEN0_SHIFT + filter)) & 1;
+    return (at86rf215_reg_read(dev, dev->BBC->RG_AFC0) >> (AFC0_AFEN0_SHIFT + filter)) & 1;
 }
 
 void at86rf215_set_framefilter_enabled(at86rf215_t *dev, uint8_t filter, uint8_t state)
 {
-	uint8_t val = at86rf215_reg_read(dev, dev->BBC->RG_AFC0);
-	if (state == 1){
-		val |= 1 << (AFC0_AFEN0_SHIFT + filter);
-	}else if (state == 0){
-		val &= ~(1 << (AFC0_AFEN0_SHIFT + filter));
-	}
+    uint8_t val = at86rf215_reg_read(dev, dev->BBC->RG_AFC0);
+    if (state == 1){
+        val |= 1 << (AFC0_AFEN0_SHIFT + filter);
+    }else if (state == 0){
+        val &= ~(1 << (AFC0_AFEN0_SHIFT + filter));
+    }
 
-	return at86rf215_reg_write(dev, dev->BBC->RG_AFC0, val);
+    return at86rf215_reg_write(dev, dev->BBC->RG_AFC0, val);
 }
 
 uint64_t at86rf215_get_addr_long(const at86rf215_t *dev)
@@ -138,7 +138,7 @@ uint16_t at86rf215_get_pan(const at86rf215_t *dev)
 uint16_t at86rf215_get_pan_multi(const at86rf215_t *dev, uint8_t filter)
 {
 	if (filter > 3){
-		return 0;
+            return 0;
 	}
 	return at86rf215_reg_read16(dev, dev->BBC->RG_MACPID0F0 + (4 * filter));
 }
@@ -152,7 +152,7 @@ void at86rf215_set_pan(at86rf215_t *dev, uint16_t pan)
 void at86rf215_set_pan_multi(at86rf215_t *dev, uint8_t filter, uint16_t pan)
 {
 	if (filter > 3){
-		return;
+            return;
 	}
 	at86rf215_reg_write16(dev, dev->BBC->RG_MACPID0F0 + (4*filter), pan);
 }
