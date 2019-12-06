@@ -647,18 +647,18 @@ static void _netif_list(netif_t *iface)
         printf(" CR: %s ", _netopt_coding_rate_str[u8]);
     }
 #endif /* MODULE_GNRC_NETIF_CMD_LORA */
-    res = gnrc_netapi_get(iface, NETOPT_IEEE802154_PHY, 0, &u8, sizeof(u8));
+    res = netif_get_opt(iface, NETOPT_IEEE802154_PHY, 0, &u8, sizeof(u8));
     if (res >= 0) {
         printf(" PHY: %s ", _netopt_ieee802154_phy_str[u8]);
         switch (u8) {
 #ifdef MODULE_GNRC_NETIF_CMD_OQPSK
         case IEEE802154_PHY_OQPSK:
             printf("\n          ");
-            res = gnrc_netapi_get(iface, NETOPT_OQPSK_CHIPS, 0, &u16, sizeof(u16));
+            res = netif_get_opt(iface, NETOPT_OQPSK_CHIPS, 0, &u16, sizeof(u16));
             if (res >= 0) {
                 printf(" chip rate: %u ", u16);
             }
-            res = gnrc_netapi_get(iface, NETOPT_OQPSK_RATE, 0, &u8, sizeof(u8));
+            res = netif_get_opt(iface, NETOPT_OQPSK_RATE, 0, &u8, sizeof(u8));
             if (res >= 0) {
                 printf(" rate mode: %d %s ", u8 & ~IEEE802154_OQPSK_FLAG_LEGACY,
                                             (u8 & IEEE802154_OQPSK_FLAG_LEGACY) ?
@@ -670,11 +670,11 @@ static void _netif_list(netif_t *iface)
 #ifdef MODULE_GNRC_NETIF_CMD_OFDM
         case IEEE802154_PHY_OFDM:
             printf("\n          ");
-            res = gnrc_netapi_get(iface, NETOPT_OFDM_OPTION, 0, &u8, sizeof(u8));
+            res = netif_get_opt(iface, NETOPT_OFDM_OPTION, 0, &u8, sizeof(u8));
             if (res >= 0) {
                 printf(" Option: %u ", u8);
             }
-            res = gnrc_netapi_get(iface, NETOPT_OFDM_MCS, 0, &u8, sizeof(u8));
+            res = netif_get_opt(iface, NETOPT_OFDM_MCS, 0, &u8, sizeof(u8));
             if (res >= 0) {
                 printf(" MCS: %u (%s) ", u8, _netopt_odfm_mcs_str[u8]);
             }
@@ -684,7 +684,7 @@ static void _netif_list(netif_t *iface)
 #ifdef MODULE_GNRC_NETIF_CMD_FSK
         case IEEE802154_PHY_FSK:
             printf("\n          ");
-            res = gnrc_netapi_get(iface, NETOPT_FSK_MODULATION_INDEX, 0, &u8, sizeof(u8));
+            res = netif_get_opt(iface, NETOPT_FSK_MODULATION_INDEX, 0, &u8, sizeof(u8));
             if (res >= 0) {
                 hwaddr[0] = 64; /* convenient temp var */
                 frac_short(&u8, hwaddr);
@@ -694,19 +694,19 @@ static void _netif_list(netif_t *iface)
                     printf(" modulation index: %u/%u ", u8, hwaddr[0]);
                 }
             }
-            res = gnrc_netapi_get(iface, NETOPT_FSK_MODULATION_ORDER, 0, &u8, sizeof(u8));
+            res = netif_get_opt(iface, NETOPT_FSK_MODULATION_ORDER, 0, &u8, sizeof(u8));
             if (res >= 0) {
                 printf(" %u-FSK ", u8);
             }
-            res = gnrc_netapi_get(iface, NETOPT_FSK_SRATE, 0, &u16, sizeof(u16));
+            res = netif_get_opt(iface, NETOPT_FSK_SRATE, 0, &u16, sizeof(u16));
             if (res >= 0) {
                 printf(" symbol rate: %u kHz ", u16);
             }
-            res = gnrc_netapi_get(iface, NETOPT_FSK_FEC, 0, &u8, sizeof(u8));
+            res = netif_get_opt(iface, NETOPT_FSK_FEC, 0, &u8, sizeof(u8));
             if (res >= 0) {
                 printf(" FEC: %s ", _netopt_fec_str[u8]);
             }
-            res = gnrc_netapi_get(iface, NETOPT_CHANNEL_SPACING, 0, &u16, sizeof(u16));
+            res = netif_get_opt(iface, NETOPT_CHANNEL_SPACING, 0, &u16, sizeof(u16));
             if (res >= 0) {
                 printf(" BW: %ukHz ", u16);
             }
@@ -1002,7 +1002,7 @@ static int _netif_set_coding_rate(netif_t *iface, char *value)
 #endif /* MODULE_GNRC_NETIF_CMD_LORA */
 
 #ifdef MODULE_GNRC_NETIF_CMD_OQPSK
-static int _netif_set_oqpsk_rate_mode(kernel_pid_t iface, char *value)
+static int _netif_set_oqpsk_rate_mode(netif_t *iface, char *value)
 {
     uint8_t mode = 0;
     if (!strncmp("legacy_", value, 7)) {
@@ -1020,22 +1020,22 @@ static int _netif_set_oqpsk_rate_mode(kernel_pid_t iface, char *value)
         return 1;
     }
 
-    if (gnrc_netapi_set(iface, NETOPT_OQPSK_RATE, 0, &mode, sizeof(uint8_t)) < 0) {
+    if (netif_set_opt(iface, NETOPT_OQPSK_RATE, 0, &mode, sizeof(uint8_t)) < 0) {
         printf("error: unable to set rate mode to %d %s\n", mode & ~IEEE802154_OQPSK_FLAG_LEGACY,
                                                     (mode & IEEE802154_OQPSK_FLAG_LEGACY) ?
                                                     "(legacy) " : "");
         return 1;
     }
 
-    printf("success: set rate mode of interface %" PRIkernel_pid " to %d %s\n",
-           iface, mode & ~IEEE802154_OQPSK_FLAG_LEGACY,
+    printf("success: set rate mode to %d %s\n",
+            mode & ~IEEE802154_OQPSK_FLAG_LEGACY,
            (mode & IEEE802154_OQPSK_FLAG_LEGACY) ? "(legacy) " : "");
     return 0;
 }
 #endif /* MODULE_GNRC_NETIF_CMD_OQPSK */
 
 #ifdef MODULE_GNRC_NETIF_CMD_FSK
-static int _netif_set_fsk_fec(kernel_pid_t iface, char *value)
+static int _netif_set_fsk_fec(netif_t *iface, char *value)
 {
     for (size_t i = 0; i < ARRAY_SIZE(_netopt_fec_str); ++i) {
 
@@ -1043,13 +1043,12 @@ static int _netif_set_fsk_fec(kernel_pid_t iface, char *value)
             continue;
         }
 
-        if (gnrc_netapi_set(iface, NETOPT_FSK_FEC, 0, &i, sizeof(uint8_t)) < 0) {
+        if (netif_set_opt(iface, NETOPT_FSK_FEC, 0, &i, sizeof(uint8_t)) < 0) {
             printf("error: unable to set forward error correction to %s\n", value);
             return 1;
         }
 
-        printf("success: set forward error correction of interface %" PRIkernel_pid " to %s\n",
-               iface, value);
+        printf("success: set forward error correction to %s\n", value);
         return 0;
     }
 
@@ -1057,7 +1056,7 @@ static int _netif_set_fsk_fec(kernel_pid_t iface, char *value)
     return 1;
 }
 
-static int _netif_set_fsk_modulation_index(kernel_pid_t iface, char *value)
+static int _netif_set_fsk_modulation_index(netif_t *iface, char *value)
 {
     uint8_t a, b;
     char* frac = strchr(value, '/');
@@ -1071,13 +1070,12 @@ static int _netif_set_fsk_modulation_index(kernel_pid_t iface, char *value)
 
     frac_extend(&a, &b, 64);
 
-    int res = gnrc_netapi_set(iface, NETOPT_FSK_MODULATION_INDEX, 0, &a, sizeof(uint8_t));
+    int res = netif_set_opt(iface, NETOPT_FSK_MODULATION_INDEX, 0, &a, sizeof(uint8_t));
     if (res < 0) {
         printf("error: unable to set modulation index to %d/%d\n", a, b);
         return 1;
     } else {
-        printf("success: set modulation index of interface %" PRIkernel_pid " to %d/%d\n",
-               iface, res, b);
+        printf("success: set modulation index to %d/%d\n", res, b);
     }
 
     return 0;
@@ -1085,7 +1083,7 @@ static int _netif_set_fsk_modulation_index(kernel_pid_t iface, char *value)
 #endif /* MODULE_GNRC_NETIF_CMD_FSK */
 
 #ifdef MODULE_GNRC_NETIF_CMD_MULTIMODE
-static int _netif_set_ieee802154_phy_mode(kernel_pid_t iface, char *value)
+static int _netif_set_ieee802154_phy_mode(netif_t *iface, char *value)
 {
     /* ignore case */
     str_toupper(value);
@@ -1096,13 +1094,12 @@ static int _netif_set_ieee802154_phy_mode(kernel_pid_t iface, char *value)
             continue;
         }
 
-        if (gnrc_netapi_set(iface, NETOPT_IEEE802154_PHY, 0, &i, sizeof(uint8_t)) < 0) {
+        if (netif_set_opt(iface, NETOPT_IEEE802154_PHY, 0, &i, sizeof(uint8_t)) < 0) {
             printf("error: unable to set PHY mode to %s\n", value);
             return 1;
         }
 
-        printf("success: set PHY mode of interface %" PRIkernel_pid " to %s\n",
-               iface, value);
+        printf("success: set PHY mode %s\n", value);
         return 0;
     }
 
