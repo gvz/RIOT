@@ -1138,6 +1138,7 @@ static void _isr(netdev_t *netdev)
 
         if (_ack_frame_received(dev)) {
             xtimer_remove(&dev->ack_timer);
+            dev->ack_timeout = false; // we got an ACK so we can forget this timeout
             _tx_end(dev, NETDEV_EVENT_TX_COMPLETE);
             at86rf215_rf_cmd(dev, CMD_RF_RX);
             break;
