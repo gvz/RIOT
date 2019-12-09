@@ -29,29 +29,21 @@
 /* we can still go +3 dBm higher by increasing PA current */
 #define PAC_DBM_MIN                             (-31)     /* dBm */
 
-uint16_t at86rf215_get_addr_short(const at86rf215_t *dev)
-{
-    return (uint16_t)byteorder_ntohs((network_uint16_t)at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0));
-
-}
-uint16_t at86rf215_get_addr_short_multi(const at86rf215_t *dev, uint8_t filter)
+uint16_t at86rf215_get_addr_short(const at86rf215_t *dev, uint8_t filter)
 {
     if (filter > 3){
         return 0; 
     }
     return byteorder_ntohs((network_uint16_t)at86rf215_reg_read16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter)));
+
 }
 
-void at86rf215_set_addr_short(at86rf215_t *dev, uint16_t addr)
+void at86rf215_set_addr_short(at86rf215_t *dev, uint8_t filter, uint16_t addr)
 {
-    dev->netdev.short_addr[0] = (uint8_t)(addr);
-    dev->netdev.short_addr[1] = (uint8_t)(addr >> 8);
-    
-    at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0, byteorder_htons(addr).u16);
-}
-
-void at86rf215_set_addr_short_multi(at86rf215_t *dev, uint8_t filter, uint16_t addr)
-{
+    if (filter == 0){  //dot not overwrite node address for filters other than 0 
+        dev->netdev.short_addr[0] = (uint8_t)(addr);
+        dev->netdev.short_addr[1] = (uint8_t)(addr >> 8);
+    }
     if (filter > 3){
         return; 
     }
@@ -130,31 +122,23 @@ uint8_t at86rf215_get_phy_mode(at86rf215_t *dev)
     }
 }
 
-uint16_t at86rf215_get_pan(const at86rf215_t *dev)
+uint16_t at86rf215_get_pan(const at86rf215_t *dev, uint8_t filter)
 {
-    return at86rf215_reg_read16(dev, dev->BBC->RG_MACPID0F0);
+    if (filter > 3){
+        return 0;
+    }
+    return at86rf215_reg_read16(dev, dev->BBC->RG_MACPID0F0 + (4 * filter));
 }
 
-uint16_t at86rf215_get_pan_multi(const at86rf215_t *dev, uint8_t filter)
+void at86rf215_set_pan(at86rf215_t *dev, uint8_t filter, uint16_t pan)
 {
-	if (filter > 3){
-            return 0;
-	}
-	return at86rf215_reg_read16(dev, dev->BBC->RG_MACPID0F0 + (4 * filter));
-}
-
-void at86rf215_set_pan(at86rf215_t *dev, uint16_t pan)
-{
-    dev->netdev.pan = pan;
-    at86rf215_reg_write16(dev, dev->BBC->RG_MACPID0F0, pan);
-}
-
-void at86rf215_set_pan_multi(at86rf215_t *dev, uint8_t filter, uint16_t pan)
-{
-	if (filter > 3){
-            return;
-	}
-	at86rf215_reg_write16(dev, dev->BBC->RG_MACPID0F0 + (4*filter), pan);
+    if (filter == 0){
+        dev->netdev.pan = pan;
+    }
+    if (filter > 3){
+        return;
+    }
+    at86rf215_reg_write16(dev, dev->BBC->RG_MACPID0F0 + (4*filter), pan);
 }
 
 // TODO: take modulation into account

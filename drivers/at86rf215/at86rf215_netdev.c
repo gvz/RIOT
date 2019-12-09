@@ -473,7 +473,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
     switch (opt) {
         case NETOPT_ADDRESS:
             assert(len <= sizeof(uint16_t));
-            at86rf215_set_addr_short(dev, *((const uint16_t *)val));
+            at86rf215_set_addr_short(dev, 0, *((const uint16_t *)val));
             /* don't set res to set netdev_ieee802154_t::short_addr */
             break;
         case NETOPT_ADDRESS_LONG:
@@ -483,7 +483,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
         case NETOPT_NID:
             assert(len <= sizeof(uint16_t));
-            at86rf215_set_pan(dev, *((const uint16_t *)val));
+            at86rf215_set_pan(dev, 0, *((const uint16_t *)val));
             /* don't set res to set netdev_ieee802154_t::pan */
             break;
         case NETOPT_CHANNEL:

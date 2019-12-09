@@ -155,10 +155,10 @@ void at86rf215_reset(at86rf215_t *dev)
     uint64_t long_addr;
     memcpy(&long_addr, dev->netdev.long_addr, sizeof(long_addr));
     at86rf215_set_addr_long(dev, long_addr);
-    at86rf215_set_addr_short(dev, unaligned_get_u16(dev->netdev.short_addr));
+    at86rf215_set_addr_short(dev, 0, unaligned_get_u16(dev->netdev.short_addr));
 
     /*** set default PAN id ***/
-    at86rf215_set_pan(dev, dev->netdev.pan);
+    at86rf215_set_pan(dev, 0, dev->netdev.pan);
 
     /* set default TX power */
     at86rf215_set_txpower(dev, AT86RF215_DEFAULT_TXPOWER);

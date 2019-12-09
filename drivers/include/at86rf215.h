@@ -191,15 +191,6 @@ void at86rf215_reset_cfg(at86rf215_t *dev);
 void at86rf215_reset(at86rf215_t *dev);
 
 /**
- * @brief   Get the short address of the given device
- *
- * @param[in] dev           device to read from
- *
- * @return                  the currently set (2-byte) short address
- */
-uint16_t at86rf215_get_addr_short(const at86rf215_t *dev);
-
-/**
  * @brief   Get the short address of the given device form multi address filter
  *
  * @param[in] dev           device to read from
@@ -207,15 +198,7 @@ uint16_t at86rf215_get_addr_short(const at86rf215_t *dev);
  *
  * @return                  the currently set (2-byte) short address
  */
- uint16_t at86rf215_get_addr_short_multi(const at86rf215_t *dev, uint8_t filter);
-
-/**
- * @brief   Set the short address of the given device
- *
- * @param[in,out] dev       device to write to
- * @param[in] addr          (2-byte) short address to set
- */
-void at86rf215_set_addr_short(at86rf215_t *dev, uint16_t addr);
+uint16_t at86rf215_get_addr_short(const at86rf215_t *dev, uint8_t filter);
 
 /**
  * @brief   Set the short address of the given device to multi address filter
@@ -224,9 +207,7 @@ void at86rf215_set_addr_short(at86rf215_t *dev, uint16_t addr);
  * @param[in] filter          (1-byte) address filter to set
  * @param[in] addr          (2-byte) short address to set
  */
- void at86rf215_set_addr_short_multi(at86rf215_t *dev, uint8_t filter, uint16_t addr);
-
-
+void at86rf215_set_addr_short(at86rf215_t *dev, uint8_t filter, uint16_t addr);
 
 /**
  * @brief   Get whether frame filter is enabled or not
@@ -283,15 +264,6 @@ uint8_t at86rf215_get_chan(const at86rf215_t *dev);
 void at86rf215_set_chan(at86rf215_t *dev, uint16_t chan);
 
 /**
- * @brief   Get the configured PAN ID of the given device
- *
- * @param[in] dev           device to read from
- *
- * @return                  the currently set PAN ID
- */
-uint16_t at86rf215_get_pan(const at86rf215_t *dev);
-
-/**
  * @brief   Get the configured PAN ID of the given device from multi address filter
  *
  * @param[in] dev           device to read from
@@ -299,15 +271,7 @@ uint16_t at86rf215_get_pan(const at86rf215_t *dev);
  *
  * @return                  the currently set PAN ID
  */
- uint16_t at86rf215_get_pan_multi(const at86rf215_t *dev, uint8_t filter);
-
-/**
- * @brief   Set the PAN ID of the given device
- *
- * @param[in,out] dev       device to write to
- * @param[in] pan           PAN ID to set
- */
-void at86rf215_set_pan(at86rf215_t *dev, uint16_t pan);
+uint16_t at86rf215_get_pan(const at86rf215_t *dev, uint8_t filter);
 
 /**
  * @brief   Set the PAN ID of the given address filter
@@ -316,7 +280,7 @@ void at86rf215_set_pan(at86rf215_t *dev, uint16_t pan);
  * @param[in] filter        address filter to set
  * @param[in] pan           PAN ID to set
  */
- void at86rf215_set_pan_multi(at86rf215_t *dev, uint8_t filter, uint16_t pan);
+void at86rf215_set_pan(at86rf215_t *dev, uint8_t filter, uint16_t pan);
 
 /**
  * @brief   Get the configured transmission power of the given device [in dBm]
