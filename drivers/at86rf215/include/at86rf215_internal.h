@@ -338,6 +338,19 @@ uint8_t at86rf215_OFDM_get_option(at86rf215_t *dev);
 
 /**
  * @brief   Configure the radio to make use of O-QPSK modulation.
+ *          The rate mode may be
+ *              - 0 for compatibility with first-gen 802.15.4 devices (250 kbit/s)
+ *              - 1 for compatibility with the proprietary high-data rate modes of at86rf2xx
+ *
+ * @param[in] dev       device to configure
+ * @param[in] high_rate use proprietary high data rate compatible with at86rf2xx
+ *
+ * @return              0 on success, error otherwise
+ */
+int at86rf215_configure_legacy_OQPSK(at86rf215_t *dev, bool high_rate);
+
+/**
+ * @brief   Configure the radio to make use of O-QPSK modulation.
  *          The chip rate is the number of bits per second (chips per second) used in the spreading signal.
  *          The rate mode may be
  *              - @ref AT86RF215_OQPSK_MODE_LEGACY for compatibility with first-gen 802.15.4 devices (250 kbit/s)
@@ -390,6 +403,36 @@ uint8_t at86rf215_OQPSK_get_mode(at86rf215_t *dev);
  * @return              0 on success, error otherwise
  */
 int at86rf215_OQPSK_set_mode(at86rf215_t *dev, uint8_t mode);
+
+/**
+ * @brief   Get the current legacy O-QPSK mode
+ *
+ * @param[in] dev       device to read from
+ *
+ * @return              0 for IEEE 802.15.4 mode, 1 for high data rate
+ */
+uint8_t at86rf215_OQPSK_get_mode_legacy(at86rf215_t *dev);
+
+/**
+ * @brief   Set the current legacy O-QPSK rate mode
+ *
+ * @param[in] dev       device to configure
+ * @param[in] high_rate set to use proprietary high data rate
+ *
+ * @return              0 on success, error otherwise
+ */
+int at86rf215_OQPSK_set_mode_legacy(at86rf215_t *dev, bool high_rate);
+
+/**
+ * @brief   Test if O-QPSK PHY operates in legacy mode
+ *
+ * @param[in] dev       device to test
+ *
+ * @return              true if device operates in legacy mode
+ */
+static inline bool at86rf215_OQPSK_is_legacy(at86rf215_t *dev) {
+	return at86rf215_reg_read(dev, dev->BBC->RG_OQPSKPHRTX) & AT86RF215_OQPSK_MODE_LEGACY;
+}
 
 /** @} */
 

@@ -559,18 +559,22 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             assert(len <= sizeof(uint8_t));
             switch (*(uint8_t *)val) {
             case IEEE802154_PHY_OQPSK:
+                at86rf215_configure_legacy_OQPSK(dev, at86rf215_OQPSK_get_mode_legacy(dev));
+                res = sizeof(uint8_t);
+                break;
+            case IEEE802154_PHY_MR_OQPSK:
                 at86rf215_configure_OQPSK(dev,
                                           at86rf215_OQPSK_get_chips(dev),
                                           at86rf215_OQPSK_get_mode(dev));
                 res = sizeof(uint8_t);
                 break;
-            case IEEE802154_PHY_OFDM:
+            case IEEE802154_PHY_MR_OFDM:
                 at86rf215_configure_OFDM(dev,
                                          at86rf215_OFDM_get_option(dev),
                                          at86rf215_OFDM_get_scheme(dev));
                 res = sizeof(uint8_t);
                 break;
-            case IEEE802154_PHY_FSK:
+            case IEEE802154_PHY_MR_FSK:
                 at86rf215_configure_FSK(dev,
                                         at86rf215_FSK_get_srate(dev),
                                         at86rf215_FSK_get_mod_idx(dev),
@@ -584,7 +588,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
 
         case NETOPT_OFDM_OPTION:
-            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_OFDM) {
+            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_OFDM) {
                 return -ENOTSUP;
             }
 
@@ -597,7 +601,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
 
         case NETOPT_OFDM_MCS:
-            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_OFDM) {
+            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_OFDM) {
                 return -ENOTSUP;
             }
 
@@ -610,7 +614,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
 
         case NETOPT_OQPSK_CHIPS:
-            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_OQPSK) {
+            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_OQPSK) {
                 return -ENOTSUP;
             }
 
@@ -634,7 +638,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
 
         case NETOPT_OQPSK_RATE:
-            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_OQPSK) {
+            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_OQPSK) {
                 return -ENOTSUP;
             }
 
@@ -647,7 +651,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
 
         case NETOPT_FSK_MODULATION_INDEX:
-            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_FSK) {
+            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_FSK) {
                 return -ENOTSUP;
             }
 
@@ -659,7 +663,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
 
         case NETOPT_FSK_MODULATION_ORDER:
-            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_FSK) {
+            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_FSK) {
                 return -ENOTSUP;
             }
 
@@ -672,7 +676,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
 
         case NETOPT_FSK_SRATE:
-            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_FSK) {
+            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_FSK) {
                 return -ENOTSUP;
             }
 
@@ -686,7 +690,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
 
         case NETOPT_FSK_FEC:
-            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_FSK) {
+            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_FSK) {
                 return -ENOTSUP;
             }
 
@@ -699,7 +703,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             break;
 
         case NETOPT_CHANNEL_SPACING:
-            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_FSK) {
+            if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_FSK) {
                 return -ENOTSUP;
             }
 

@@ -88,9 +88,11 @@ uint16_t at86rf215_get_channel_spacing(at86rf215_t *dev) {
 uint8_t at86rf215_get_phy_mode(at86rf215_t *dev)
 {
     switch (at86rf215_reg_read(dev, dev->BBC->RG_PC) & PC_PT_MASK) {
-    case 0x1: return IEEE802154_PHY_FSK;
-    case 0x2: return IEEE802154_PHY_OFDM;
-    case 0x3: return IEEE802154_PHY_OQPSK;
+    case 0x1: return IEEE802154_PHY_MR_FSK;
+    case 0x2: return IEEE802154_PHY_MR_OFDM;
+    case 0x3: return at86rf215_OQPSK_is_legacy(dev)
+                ? IEEE802154_PHY_OQPSK
+                : IEEE802154_PHY_MR_OQPSK;
     default:  return IEEE802154_PHY_DISABLED;
     }
 }
@@ -169,10 +171,10 @@ void at86rf215_enable_rpc(at86rf215_t *dev)
 
     /* no Reduced Power mode available for OFDM */
     switch (at86rf215_get_phy_mode(dev)) {
-    case IEEE802154_PHY_FSK:
+    case IEEE802154_PHY_MR_FSK:
         at86rf215_reg_or(dev, dev->BBC->RG_FSKRPC, FSKRPC_EN_MASK);
         break;
-    case IEEE802154_PHY_OQPSK:
+    case IEEE802154_PHY_MR_OQPSK:
         at86rf215_reg_or(dev, dev->BBC->RG_OQPSKC2, OQPSKC2_RPC_MASK);
         break;
     }
@@ -186,10 +188,10 @@ void at86rf215_disable_rpc(at86rf215_t *dev)
 
     /* no Reduced Power mode available for OFDM */
     switch (at86rf215_get_phy_mode(dev)) {
-    case IEEE802154_PHY_FSK:
+    case IEEE802154_PHY_MR_FSK:
         at86rf215_reg_and(dev, dev->BBC->RG_FSKRPC, ~FSKRPC_EN_MASK);
         break;
-    case IEEE802154_PHY_OQPSK:
+    case IEEE802154_PHY_MR_OQPSK:
         at86rf215_reg_and(dev, dev->BBC->RG_OQPSKC2, ~OQPSKC2_RPC_MASK);
         break;
     }

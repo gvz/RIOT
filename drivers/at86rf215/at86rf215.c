@@ -144,7 +144,7 @@ void at86rf215_reset(at86rf215_t *dev)
                                               | AMCS_AACKFA_MASK
                                               | AMCS_AACKDR_MASK);
 
-    at86rf215_configure_OQPSK(dev, is_subGHz(dev) ? BB_FCHIP1000 : BB_FCHIP2000, IEEE802154_OQPSK_FLAG_LEGACY);
+    at86rf215_configure_legacy_OQPSK(dev, 0);
 
     /* set default channel */
     at86rf215_set_chan(dev, dev->netdev.chan);
