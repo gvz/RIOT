@@ -384,11 +384,11 @@ static void _print_netopt(netopt_t opt)
 
 #ifdef MODULE_GNRC_NETIF_CMD_OQPSK
 
-        case NETOPT_OQPSK_CHIPS:
+        case NETOPT_MR_OQPSK_CHIPS:
             printf("chip rate");
             break;
 
-        case NETOPT_OQPSK_RATE:
+        case NETOPT_MR_OQPSK_RATE:
             printf("rate mode");
             break;
 
@@ -657,11 +657,11 @@ static void _netif_list(netif_t *iface)
 #ifdef MODULE_GNRC_NETIF_CMD_OQPSK
         case IEEE802154_PHY_MR_OQPSK:
             printf("\n          ");
-            res = netif_get_opt(iface, NETOPT_OQPSK_CHIPS, 0, &u16, sizeof(u16));
+            res = netif_get_opt(iface, NETOPT_MR_OQPSK_CHIPS, 0, &u16, sizeof(u16));
             if (res >= 0) {
                 printf(" chip rate: %u ", u16);
             }
-            res = netif_get_opt(iface, NETOPT_OQPSK_RATE, 0, &u8, sizeof(u8));
+            res = netif_get_opt(iface, NETOPT_MR_OQPSK_RATE, 0, &u8, sizeof(u8));
             if (res >= 0) {
                 printf(" rate mode: %d ", u8);
             }
@@ -1465,10 +1465,10 @@ static int _netif_set(char *cmd_name, netif_t *iface, char *key, char *value)
 #endif /* MODULE_GNRC_NETIF_CMD_MULTIMODE */
 #ifdef MODULE_GNRC_NETIF_CMD_OQPSK
     else if ((strcmp("chip_rate", key) == 0) || (strcmp("chips", key) == 0)) {
-        return _netif_set_u16(iface, NETOPT_OQPSK_CHIPS, 0, value);
+        return _netif_set_u16(iface, NETOPT_MR_OQPSK_CHIPS, 0, value);
     }
     else if (strcmp("rate_mode", key) == 0) {
-        return _netif_set_u8(iface, NETOPT_OQPSK_RATE, 0, value);
+        return _netif_set_u8(iface, NETOPT_MR_OQPSK_RATE, 0, value);
     }
 #endif /* MODULE_GNRC_NETIF_CMD_OQPSK */
 #ifdef MODULE_GNRC_NETIF_CMD_OFDM

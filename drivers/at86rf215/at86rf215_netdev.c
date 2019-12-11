@@ -382,7 +382,7 @@ static int _get(netdev_t *netdev, netopt_t opt, void *val, size_t max_len)
             res = max_len;
             break;
 
-        case NETOPT_OQPSK_CHIPS:
+        case NETOPT_MR_OQPSK_CHIPS:
             assert(max_len >= sizeof(int16_t));
             switch (at86rf215_OQPSK_get_chips(dev)) {
             case 0: *((int16_t *)val) =  100; break;
@@ -393,7 +393,7 @@ static int _get(netdev_t *netdev, netopt_t opt, void *val, size_t max_len)
             res = max_len;
             break;
 
-        case NETOPT_OQPSK_RATE:
+        case NETOPT_MR_OQPSK_RATE:
             assert(max_len >= sizeof(int8_t));
             *((int8_t *)val) = at86rf215_OQPSK_get_mode(dev);
             res = max_len;
@@ -613,7 +613,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             }
             break;
 
-        case NETOPT_OQPSK_CHIPS:
+        case NETOPT_MR_OQPSK_CHIPS:
             if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_OQPSK) {
                 return -ENOTSUP;
             }
@@ -637,7 +637,7 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
             }
             break;
 
-        case NETOPT_OQPSK_RATE:
+        case NETOPT_MR_OQPSK_RATE:
             if (at86rf215_get_phy_mode(dev) != IEEE802154_PHY_MR_OQPSK) {
                 return -ENOTSUP;
             }

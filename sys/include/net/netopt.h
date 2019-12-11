@@ -659,12 +659,12 @@ typedef enum {
     /**
      * @brief   (uint8_t) MR-O-QPSK Chip Rate (kchip/s)
      */
-    NETOPT_OQPSK_CHIPS,
+    NETOPT_MR_OQPSK_CHIPS,
 
     /**
      * @brief   (uint8_t) MR-O-QPSK Rate Mode
      */
-    NETOPT_OQPSK_RATE,
+    NETOPT_MR_OQPSK_RATE,
 
     /**
      * @brief   (uint8_t) MR-OFDM PHY Option (Values: 1-4)
