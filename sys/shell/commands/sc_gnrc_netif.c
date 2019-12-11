@@ -392,6 +392,10 @@ static void _print_netopt(netopt_t opt)
             printf("rate mode");
             break;
 
+        case NETOPT_OQPSK_RATE:
+            printf("high rate");
+            break;
+
 #endif /* MODULE_GNRC_NETIF_CMD_OQPSK */
 #ifdef MODULE_GNRC_NETIF_CMD_OFDM
 
@@ -664,6 +668,15 @@ static void _netif_list(netif_t *iface)
             res = netif_get_opt(iface, NETOPT_MR_OQPSK_RATE, 0, &u8, sizeof(u8));
             if (res >= 0) {
                 printf(" rate mode: %d ", u8);
+            }
+
+            break;
+
+        case IEEE802154_PHY_OQPSK:
+            printf("\n          ");
+            res = netif_get_opt(iface, NETOPT_OQPSK_RATE, 0, &u8, sizeof(u8));
+            if (res >= 0) {
+                printf(" high data rate: %d ", u8);
             }
 
             break;
@@ -1469,6 +1482,9 @@ static int _netif_set(char *cmd_name, netif_t *iface, char *key, char *value)
     }
     else if (strcmp("rate_mode", key) == 0) {
         return _netif_set_u8(iface, NETOPT_MR_OQPSK_RATE, 0, value);
+    }
+    else if (strcmp("high_rate", key) == 0) {
+        return _netif_set_u8(iface, NETOPT_OQPSK_RATE, 0, value);
     }
 #endif /* MODULE_GNRC_NETIF_CMD_OQPSK */
 #ifdef MODULE_GNRC_NETIF_CMD_OFDM
