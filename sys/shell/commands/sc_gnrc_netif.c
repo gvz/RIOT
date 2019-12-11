@@ -483,14 +483,17 @@ static const char *_netopt_coding_rate_str[] = {
 };
 #endif
 
+#ifdef MODULE_IEEE802154
 static const char *_netopt_ieee802154_phy_str[] = {
     [IEEE802154_PHY_DISABLED] = "DISABLED",
     [IEEE802154_PHY_BPSK] = "BPSK",
     [IEEE802154_PHY_ASK] = "ASK",
     [IEEE802154_PHY_OQPSK] = "O-QPSK",
-    [IEEE802154_PHY_OFDM] = "OFDM",
-    [IEEE802154_PHY_FSK] = "FSK"
+    [IEEE802154_PHY_MR_OQPSK] = "MR-O-QPSK",
+    [IEEE802154_PHY_MR_OFDM] = "MR-OFDM",
+    [IEEE802154_PHY_MR_FSK] = "MR-FSK"
 };
+#endif
 
 #ifdef MODULE_GNRC_NETIF_CMD_OFDM
 static const char *_netopt_odfm_mcs_str[] = {
@@ -652,7 +655,7 @@ static void _netif_list(netif_t *iface)
         printf(" PHY: %s ", _netopt_ieee802154_phy_str[u8]);
         switch (u8) {
 #ifdef MODULE_GNRC_NETIF_CMD_OQPSK
-        case IEEE802154_PHY_OQPSK:
+        case IEEE802154_PHY_MR_OQPSK:
             printf("\n          ");
             res = netif_get_opt(iface, NETOPT_OQPSK_CHIPS, 0, &u16, sizeof(u16));
             if (res >= 0) {
@@ -660,15 +663,13 @@ static void _netif_list(netif_t *iface)
             }
             res = netif_get_opt(iface, NETOPT_OQPSK_RATE, 0, &u8, sizeof(u8));
             if (res >= 0) {
-                printf(" rate mode: %d %s ", u8 & ~IEEE802154_OQPSK_FLAG_LEGACY,
-                                            (u8 & IEEE802154_OQPSK_FLAG_LEGACY) ?
-                                            "(legacy)" : "");
+                printf(" rate mode: %d ", u8);
             }
 
             break;
 #endif /* MODULE_GNRC_NETIF_CMD_OQPSK */
 #ifdef MODULE_GNRC_NETIF_CMD_OFDM
-        case IEEE802154_PHY_OFDM:
+        case IEEE802154_PHY_MR_OFDM:
             printf("\n          ");
             res = netif_get_opt(iface, NETOPT_OFDM_OPTION, 0, &u8, sizeof(u8));
             if (res >= 0) {
@@ -682,7 +683,7 @@ static void _netif_list(netif_t *iface)
             break;
 #endif /* MODULE_GNRC_NETIF_CMD_OQPSK */
 #ifdef MODULE_GNRC_NETIF_CMD_FSK
-        case IEEE802154_PHY_FSK:
+        case IEEE802154_PHY_MR_FSK:
             printf("\n          ");
             res = netif_get_opt(iface, NETOPT_FSK_MODULATION_INDEX, 0, &u8, sizeof(u8));
             if (res >= 0) {
@@ -1000,39 +1001,6 @@ static int _netif_set_coding_rate(netif_t *iface, char *value)
     return 0;
 }
 #endif /* MODULE_GNRC_NETIF_CMD_LORA */
-
-#ifdef MODULE_GNRC_NETIF_CMD_OQPSK
-static int _netif_set_oqpsk_rate_mode(netif_t *iface, char *value)
-{
-    uint8_t mode = 0;
-    if (!strncmp("legacy_", value, 7)) {
-        value += 7;
-        mode = IEEE802154_OQPSK_FLAG_LEGACY;
-    } else if (*value == 'l') {
-        value += 1;
-        mode = IEEE802154_OQPSK_FLAG_LEGACY;
-    }
-
-    if (*value >= '0' && *value <= '9') {
-        mode |= *value - '0';
-    } else {
-        puts("usage: ifconfig <if_id> set rate_mode [legacy_|l][0|1|2|3|4]");
-        return 1;
-    }
-
-    if (netif_set_opt(iface, NETOPT_OQPSK_RATE, 0, &mode, sizeof(uint8_t)) < 0) {
-        printf("error: unable to set rate mode to %d %s\n", mode & ~IEEE802154_OQPSK_FLAG_LEGACY,
-                                                    (mode & IEEE802154_OQPSK_FLAG_LEGACY) ?
-                                                    "(legacy) " : "");
-        return 1;
-    }
-
-    printf("success: set rate mode to %d %s\n",
-            mode & ~IEEE802154_OQPSK_FLAG_LEGACY,
-           (mode & IEEE802154_OQPSK_FLAG_LEGACY) ? "(legacy) " : "");
-    return 0;
-}
-#endif /* MODULE_GNRC_NETIF_CMD_OQPSK */
 
 #ifdef MODULE_GNRC_NETIF_CMD_FSK
 static int _netif_set_fsk_fec(netif_t *iface, char *value)
@@ -1500,7 +1468,7 @@ static int _netif_set(char *cmd_name, netif_t *iface, char *key, char *value)
         return _netif_set_u16(iface, NETOPT_OQPSK_CHIPS, 0, value);
     }
     else if (strcmp("rate_mode", key) == 0) {
-        return _netif_set_oqpsk_rate_mode(iface, value);
+        return _netif_set_u8(iface, NETOPT_OQPSK_RATE, 0, value);
     }
 #endif /* MODULE_GNRC_NETIF_CMD_OQPSK */
 #ifdef MODULE_GNRC_NETIF_CMD_OFDM

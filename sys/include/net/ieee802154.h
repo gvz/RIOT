@@ -104,15 +104,10 @@ enum {
     IEEE802154_PHY_BPSK,            /**< Binary Phase Shift Keying */
     IEEE802154_PHY_ASK,             /**< Amplitude-Shift Keying */
     IEEE802154_PHY_OQPSK,           /**< Offset Quadrature Phase-Shift Keying */
-    IEEE802154_PHY_OFDM,            /**< Orthogonal Frequency-Division Multiplexing */
-    IEEE802154_PHY_FSK              /**< Frequency Shift Keying */
+    IEEE802154_PHY_MR_OQPSK,        /**< Multi-Rate Offset Quadrature Phase-Shift Keying */
+    IEEE802154_PHY_MR_OFDM,         /**< Multi-Rate Orthogonal Frequency-Division Multiplexing */
+    IEEE802154_PHY_MR_FSK           /**< Multi-Rate Frequency Shift Keying */
 };
-
-/**
- * @brief   802.15.4 Flag to indicate that O-QPSK rate mode is a legacy mode.
- * @note    legacy rate modes != 0 are prorietary and may not be compatible across vendors.
- */
-#define IEEE802154_OQPSK_FLAG_LEGACY (1 << 7)
 
 /**
  * @brief   802.15.4 forward error correction schemes
