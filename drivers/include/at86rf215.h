@@ -215,19 +215,27 @@ void at86rf215_set_addr_short(at86rf215_t *dev, uint8_t filter, uint16_t addr);
  * @param[in] dev           device to read from
  * @param[in] filter        (1-byte) filter to get
  *
- * @return                  the current state of the filter
+ * @return                  (bool) the current state of the filter
  */
-uint8_t at86rf215_get_framefilter_enabled(at86rf215_t *dev, uint8_t filter);
+bool at86rf215_get_framefilter_enabled(at86rf215_t *dev, uint8_t filter);
 
 /**
- * @brief   Get whether frame filter is enabled or not
+ * @brief   Enables frame filter <filter>
  *
  * @param[in] dev           device to read from
  * @param[in] filter        (1-byte) filter to get
- * @param[in] state         (1-byte) state of filter
  *
  */
-void at86rf215_set_framefilter_enabled(at86rf215_t *dev, uint8_t filter, uint8_t state);
+ void at86rf215_disable_framefilter(at86rf215_t *dev, uint8_t filter);
+
+/**
+ * @brief   Disables frame filter <filter>
+ *
+ * @param[in] dev           device to read from
+ * @param[in] filter        (1-byte) filter to get
+ *
+ */
+void at86rf215_enable_framefilter(at86rf215_t *dev, uint8_t filter);
 
 /**
  * @brief   Get the configured long address of the given device

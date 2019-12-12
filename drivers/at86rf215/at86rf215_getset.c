@@ -50,21 +50,19 @@ void at86rf215_set_addr_short(at86rf215_t *dev, uint8_t filter, uint16_t addr)
     at86rf215_reg_write16(dev, dev->BBC->RG_MACSHA0F0 + (4*filter), byteorder_htons(addr).u16);
 }
 
-uint8_t at86rf215_get_framefilter_enabled(at86rf215_t *dev, uint8_t filter)
+bool at86rf215_get_framefilter_enabled(at86rf215_t *dev, uint8_t filter)
 {
-    return (at86rf215_reg_read(dev, dev->BBC->RG_AFC0) >> (AFC0_AFEN0_SHIFT + filter)) & 1;
+    return (bool)((at86rf215_reg_read(dev, dev->BBC->RG_AFC0) >> (AFC0_AFEN0_SHIFT + filter)) & 1);
 }
 
-void at86rf215_set_framefilter_enabled(at86rf215_t *dev, uint8_t filter, uint8_t state)
+void at86rf215_enable_framefilter(at86rf215_t *dev, uint8_t filter)
 {
-    uint8_t val = at86rf215_reg_read(dev, dev->BBC->RG_AFC0);
-    if (state == 1){
-        val |= 1 << (AFC0_AFEN0_SHIFT + filter);
-    }else if (state == 0){
-        val &= ~(1 << (AFC0_AFEN0_SHIFT + filter));
-    }
+    at86rf215_reg_or(dev, dev->BBC->RG_AFC0, 1 << (AFC0_AFEN0_SHIFT + filter));
+}
 
-    return at86rf215_reg_write(dev, dev->BBC->RG_AFC0, val);
+void at86rf215_disable_framefilter(at86rf215_t *dev, uint8_t filter)
+{
+    at86rf215_reg_and(dev, dev->BBC->RG_AFC0, 1 << (AFC0_AFEN0_SHIFT + filter));
 }
 
 uint64_t at86rf215_get_addr_long(const at86rf215_t *dev)
