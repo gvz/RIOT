@@ -254,6 +254,12 @@ static void _set_ack_timeout(at86rf215_t *dev, uint8_t chips, uint8_t mode)
     DEBUG("[%s] ACK timeout: %"PRIu32" µs\n", "O-QPSK", dev->ack_timeout_usec);
 }
 
+static void _set_csma_backoff_period(at86rf215_t *dev, uint8_t chips, uint8_t mode)
+{
+    dev->csma_backoff_period =  AT86RF215_BACKOFF_PERIOD_IN_BITS * 1000000UL / _get_bitrate(chips, mode);
+    DEBUG("[%s] CSMA BACKOFF: %"PRIu32" µs\n", "O-QPSK", dev->csma_backoff_period);
+}
+
 void _end_configure_OQPSK(at86rf215_t *dev)
 {
     /* set channel spacing */
@@ -301,6 +307,7 @@ int at86rf215_configure_OQPSK(at86rf215_t *dev, uint8_t chips, uint8_t mode)
 
     _set_mode(dev, mode);
     _set_chips(dev, chips);
+    _set_csma_backoff_period(dev, chips, mode);
     _set_ack_timeout(dev, chips, mode);
 
     _end_configure_OQPSK(dev);
@@ -320,6 +327,7 @@ int at86rf215_configure_legacy_OQPSK(at86rf215_t *dev, bool high_rate)
     at86rf215_reg_write(dev, dev->BBC->RG_PC, 0);
 
     _set_legacy(dev, high_rate);
+    _set_csma_backoff_period(dev, chips, mode);
     _set_ack_timeout(dev, chips, mode);
 
     _end_configure_OQPSK(dev);
@@ -341,6 +349,7 @@ int at86rf215_OQPSK_set_chips(at86rf215_t *dev, uint8_t chips)
     at86rf215_await_state_end(dev, RF_STATE_TX);
 
     _set_chips(dev, chips);
+    _set_csma_backoff_period(dev, chips, mode >> OQPSKPHRTX_MOD_SHIFT);
     _set_ack_timeout(dev, chips, mode >> OQPSKPHRTX_MOD_SHIFT);
 
     return 0;
@@ -366,6 +375,7 @@ int at86rf215_OQPSK_set_mode(at86rf215_t *dev, uint8_t mode)
     }
 
     _set_mode(dev, mode);
+    _set_csma_backoff_period(dev, chips, mode);
     _set_ack_timeout(dev, chips, mode);
 
     return 0;
@@ -390,6 +400,7 @@ int at86rf215_OQPSK_set_mode_legacy(at86rf215_t *dev, bool high_rate)
     uint8_t mode  = high_rate ? 3 : 2;
     uint8_t chips = is_subGHz(dev) ? BB_FCHIP1000 : BB_FCHIP2000;
 
+    _set_csma_backoff_period(dev, chips, mode);
     _set_ack_timeout(dev, chips, mode);
 
     return 0;
