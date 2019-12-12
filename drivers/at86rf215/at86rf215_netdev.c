@@ -859,8 +859,8 @@ static void _start_backoff_timer(at86rf215_t *dev)
     }
 
     uint32_t csma_backoff_usec = (((uint32_t)1 << be) - 1) * dev->csma_backoff_period;
-    csma_backoff_usec = base % csma_backoff_usec;
-    DEBUG("SET BACKOFF to %lu  be %u min %u max %u\n", csma_backoff_usec, be, dev->csma_minbe, dev->csma_maxbe);
+    csma_backoff_usec = base % csma_backoff_usec; // limit the 32bit random value to the current backoff
+    DEBUG("SET BACKOFF to %lu  be %u min %u max %u base: %lu\n", csma_backoff_usec, be, dev->csma_minbe, dev->csma_maxbe, base);
 
     dev->timer_msg.type = NETDEV_MSG_TYPE_EVENT;
     dev->timer_msg.sender_pid = thread_getpid();
