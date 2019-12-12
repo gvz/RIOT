@@ -813,17 +813,14 @@ static void _tx_end(at86rf215_t *dev, netdev_event_t event)
 
 static void _ack_timeout_cb(void* arg) {
     at86rf215_t *dev = arg;
-    dev->ack_timeout = true;
-    msg_send_int(&dev->ack_msg, dev->ack_msg.sender_pid);
+    dev->timeout = AT86RF215_TIMEOUT_ACK;
+    msg_send_int(&dev->timer_msg, dev->timer_msg.sender_pid);
 }
 
 static void _backoff_timeout_cb(void* arg) {
     at86rf215_t *dev = arg;
-    if (!(dev->flags & AT86RF215_OPT_CCATX)) {
-        at86rf215_reg_write(dev, dev->RF->RG_EDC, 1);
-    } else {
-        at86rf215_rf_cmd(dev, CMD_RF_TXPREP);
-    }
+    dev->timeout = AT86RF215_TIMEOUT_CSMA;
+    msg_send_int(&dev->timer_msg, dev->timer_msg.sender_pid);
 }
 
 static void _set_idle(at86rf215_t *dev)
@@ -842,32 +839,36 @@ static void _set_idle(at86rf215_t *dev)
 /* wake up the radio thread when on ACK timeout */
 static void _start_ack_timer(at86rf215_t *dev)
 {
-    dev->ack_msg.type = NETDEV_MSG_TYPE_EVENT;
-    dev->ack_msg.sender_pid = thread_getpid();
+    dev->timer_msg.type = NETDEV_MSG_TYPE_EVENT;
+    dev->timer_msg.sender_pid = thread_getpid();
 
-    dev->ack_timer.arg = dev;
-    dev->ack_timer.callback = _ack_timeout_cb;
+    dev->timer.arg = dev;
+    dev->timer.callback = _ack_timeout_cb;
 
-    xtimer_set(&dev->ack_timer, dev->ack_timeout_usec);
+    xtimer_set(&dev->timer, dev->ack_timeout_usec);
 }
 
 /* wake up the radio thread when after CSMA backoff */
 static void _start_backoff_timer(at86rf215_t *dev)
 {
     uint32_t base;
-    at86rf215_get_random(dev, (uint8_t *)&base, 4);
+    at86rf215_get_random(dev, (uint8_t *)&base, sizeof(base));
     uint8_t be = ((dev->csma_retries_max - dev->csma_retries) - 1) + dev->csma_minbe ;
     if (be > dev->csma_maxbe){
 	    be = dev->csma_maxbe;
-    } 
-    dev->csma_backoff_usec = (((uint32_t)1 << be) - 1) * dev->csma_backoff_period;
-    dev->csma_backoff_usec = base % dev->csma_backoff_usec;
-    DEBUG("SET BACKOFF to %lu  be %u min %u max %u\n", dev->csma_backoff_usec, be, dev->csma_minbe, dev->csma_maxbe);
+    }
 
-    dev->backoff_timer.arg = dev;
-    dev->backoff_timer.callback = _backoff_timeout_cb;
+    uint32_t csma_backoff_usec = (((uint32_t)1 << be) - 1) * dev->csma_backoff_period;
+    csma_backoff_usec = base % csma_backoff_usec;
+    DEBUG("SET BACKOFF to %lu  be %u min %u max %u\n", csma_backoff_usec, be, dev->csma_minbe, dev->csma_maxbe);
 
-    xtimer_set(&dev->backoff_timer, dev->csma_backoff_usec);
+    dev->timer_msg.type = NETDEV_MSG_TYPE_EVENT;
+    dev->timer_msg.sender_pid = thread_getpid();
+
+    dev->timer.arg = dev;
+    dev->timer.callback = _backoff_timeout_cb;
+
+    xtimer_set(&dev->timer, csma_backoff_usec);
 }
 
 static inline bool _ack_frame_received(at86rf215_t *dev)
@@ -956,9 +957,20 @@ static void _isr(netdev_t *netdev)
     rf_irq_mask = at86rf215_reg_read(dev, dev->RF->RG_IRQS);
     bb_irq_mask = at86rf215_reg_read(dev, dev->BBC->RG_IRQS);
 
-    bool ack_timeout = dev->ack_timeout;
-    if (ack_timeout) {
-        dev->ack_timeout = false;
+    uint8_t timeout = dev->timeout;
+    if (timeout) {
+        dev->timeout = 0;
+    }
+
+    /* we got here because of CMSA timeout */
+    if (timeout & AT86RF215_TIMEOUT_CSMA) {
+        timeout = 0;
+
+        if (!(dev->flags & AT86RF215_OPT_CCATX)) {
+            at86rf215_reg_write(dev, dev->RF->RG_EDC, 1);
+        } else {
+            at86rf215_rf_cmd(dev, CMD_RF_TXPREP);
+        }
     }
 
     /* If the interrupt pin is still high, there was an IRQ on the other radio */
@@ -972,7 +984,7 @@ static void _isr(netdev_t *netdev)
 
     /* exit early if the interrupt was not for this interface */
     if (!((bb_irq_mask & bb_irqs_enabled) ||
-          (rf_irq_mask & (RF_IRQ_EDC | RF_IRQ_TRXRDY)) || ack_timeout)) {
+          (rf_irq_mask & (RF_IRQ_EDC | RF_IRQ_TRXRDY)) || timeout)) {
         return;
     }
 
@@ -1046,7 +1058,7 @@ static void _isr(netdev_t *netdev)
     }
 
     int iter = 0;
-    while (ack_timeout || (bb_irq_mask & (BB_IRQ_RXFE | BB_IRQ_TXFE))) {
+    while (timeout || (bb_irq_mask & (BB_IRQ_RXFE | BB_IRQ_TXFE))) {
 
     /* This should never happen */
     if (++iter > 3) {
@@ -1056,7 +1068,7 @@ static void _isr(netdev_t *netdev)
         printf("\tSW: %s\n", at86rf215_sw_state2a(dev->state));
         printf("\trf_irq_mask: %x\n", rf_irq_mask);
         printf("\tbb_irq_mask: %x\n", bb_irq_mask);
-        printf("\tack_timeout: %d\n", ack_timeout);
+        printf("\timeout: %x\n", timeout);
         break;
     }
 
@@ -1124,7 +1136,7 @@ static void _isr(netdev_t *netdev)
         break;
 
     case AT86RF215_STATE_TX_WAIT_ACK:
-        if (!((bb_irq_mask & BB_IRQ_RXFE) || ack_timeout)) {
+        if (!((bb_irq_mask & BB_IRQ_RXFE) || timeout)) {
             DEBUG("TX_WAIT_ACK: only RXFE or timeout expected (%x)\n", bb_irq_mask);
             break;
         }
@@ -1137,15 +1149,15 @@ static void _isr(netdev_t *netdev)
         bb_irq_mask &= ~BB_IRQ_RXFE;
 
         if (_ack_frame_received(dev)) {
-            xtimer_remove(&dev->ack_timer);
-            dev->ack_timeout = false; // we got an ACK so we can forget this timeout
+            xtimer_remove(&dev->timer);
+            dev->timeout = 0; // we got an ACK so we can forget this timeout
             _tx_end(dev, NETDEV_EVENT_TX_COMPLETE);
             at86rf215_rf_cmd(dev, CMD_RF_RX);
             break;
         }
 
         /* we got a spurious ACK */
-        if (!ack_timeout) {
+        if (!timeout) {
             at86rf215_rf_cmd(dev, CMD_RF_RX);
             break;
         }
@@ -1165,7 +1177,7 @@ timeout:
             _handle_ack_timeout(dev);
         }
 
-        ack_timeout = false;
+        timeout = false;
         break;
     }
     }

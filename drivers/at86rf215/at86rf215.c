@@ -227,7 +227,7 @@ static void _block_while_busy(at86rf215_t *dev)
     gpio_irq_disable(dev->params.int_pin);
 
     do {
-        if (gpio_read(dev->params.int_pin) || dev->ack_timeout) {
+        if (gpio_read(dev->params.int_pin) || dev->timeout) {
             at86rf215_driver.isr((netdev_t *) dev);
         }
         /* allow the other interface to process events */

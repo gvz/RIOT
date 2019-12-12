@@ -122,6 +122,14 @@ enum {
 /** @} */
 
 /**
+ * @name    Internal timeout flags
+ * @{
+ */
+#define AT86RF215_TIMEOUT_ACK        (0x0001)       /**< ACK timeout */
+#define AT86RF215_TIMEOUT_CSMA       (0x0002)       /**< CMSA timeout */
+/** @} */
+
+/**
  * @brief   struct holding all params needed for device initialization
  */
 typedef struct at86rf215_params {
@@ -144,13 +152,13 @@ typedef struct at86rf215 {
     struct at86rf215 *sibling;              /**< The other radio */
     const at86rf215_RF_regs_t  *RF;         /**< Radio Frontend Registers */
     const at86rf215_BBC_regs_t *BBC;        /**< Baseband Registers */
-    xtimer_t ack_timer;                     /**< timer for ACK timeout */
-    msg_t ack_msg;                          /**< message for ACK timeout */
+    xtimer_t timer;                         /**< timer for ACK & CSMA timeout */
+    msg_t timer_msg;                        /**< message for timeout timer */
     uint32_t ack_timeout_usec;              /**< time to wait before retransmission in µs */
     uint16_t flags;                         /**< Device specific flags */
     uint16_t num_chans;                     /**< Number of legal channel at current modulation */
     uint16_t tx_frame_len;                  /**< length of the current TX frame */
-    uint8_t ack_timeout;                    /**< 1 if ack timeout was reached, 0 otherwise */
+    uint8_t timeout;                        /**< indicates which timeout was reached */
     uint8_t mode;                           /**< current phy mode */
     uint8_t state;                          /**< current state of the radio */
     uint8_t retries_max;                    /**< number of retries until ACK is received */
@@ -160,9 +168,6 @@ typedef struct at86rf215 {
     uint8_t fsk_pl_rx;                      /**< FSK Preamble Length for RX */
     uint8_t fsk_pl_tx;                      /**< FSK Preamble Length for TX */
     uint32_t csma_backoff_period;           /**< CSMA Backoff period */
-    uint32_t csma_backoff_usec;             /**< active CSMA Backoff */
-    xtimer_t backoff_timer;                 /**< timer for csma backoff  */
-    uint8_t backoff_timeout;                    /**< 1 if ack timeout was reached, 0 otherwise */
     uint8_t csma_minbe;                     /**< CSMA mininum backoff exponent */
     uint8_t csma_maxbe;                     /**< CSMA maximum backoff exponent */
 } at86rf215_t;
